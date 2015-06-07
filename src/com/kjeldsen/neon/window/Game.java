@@ -6,19 +6,20 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
-import java.util.Random;
 
 import com.kjeldsen.neon.framework.GameObject;
 import com.kjeldsen.neon.framework.KeyInput;
 import com.kjeldsen.neon.framework.ObjectId;
+import com.kjeldsen.neon.framework.Texture;
 import com.kjeldsen.neon.objects.Block;
+import com.kjeldsen.neon.objects.Flag;
 import com.kjeldsen.neon.objects.Player;
 
 public class Game extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = 968770233274510255L;
 
-	private BufferedImage level = null;
+	private BufferedImage level = null, level2 = null, background = null;
 	
 	private boolean running = false;
 	private Thread thread;
@@ -26,23 +27,24 @@ public class Game extends Canvas implements Runnable {
 	public static int WIDTH, HEIGHT;
 	
 	public static boolean DEBUG = false;
+	private static Texture texture;
 	
-	Handler handler;
-	Camera camera;
+	private Handler handler;
+	private Camera camera;
 	
-	Random rand = new Random();
+	public static int LEVEL = 1; 
 	
 	public void init() {
 		WIDTH = getWidth();
 		HEIGHT = getHeight();
 		
+		texture = new Texture();
+		
 		BufferedImageLoader loader = new BufferedImageLoader();
-		level = loader.loadImage("/level.png");
+		background = loader.loadImage("/background.png");
 		
 		camera = new Camera(0, 0);
-		
-		handler = new Handler();
-		loadImageLevel(level);
+		handler = new Handler(camera, loader);
 		
 		this.addKeyListener(new KeyInput(handler));
 	}
@@ -112,8 +114,11 @@ public class Game extends Canvas implements Runnable {
 		/////////////////////////////////////////////////
 		//                  DRAW HERE                  //
 		
-		graphics.setColor(Color.black);
+		graphics.setColor(new Color(25, 191, 224));
 		graphics.fillRect(0, 0, getWidth(), getHeight());
+		
+		graphics.drawImage(background, 0, 0, WIDTH, HEIGHT, null);
+		
 		g2d.translate(camera.getX(), camera.getY());
 		handler.render(graphics);
 		g2d.translate(-camera.getX(), -camera.getY());
@@ -124,22 +129,9 @@ public class Game extends Canvas implements Runnable {
 		graphics.dispose();
 		bs.show();
 	}
-
-	private void loadImageLevel(BufferedImage levelImage) {
-		int w = levelImage.getWidth();
-		int h = levelImage.getHeight();
-		
-		for(int x=0; x<w; x++) {
-			for(int y=0; y<h; y++) {
-				int pixel = levelImage.getRGB(x, y);
-				int red = (pixel >> 16) & 0xff;
-				int green = (pixel >> 8) & 0xff;
-				int blue = (pixel) & 0xff;
-				
-				if(red == 255 && green == 255 && blue == 255) handler.addObject(new Block(x*32, y*32, ObjectId.BLOCK));
-				if(red == 0 && green == 0 && blue == 255) handler.addObject(new Player(x*32, y*32, handler, ObjectId.PLAYER));
-			}
-		}
+	
+	public static Texture getInstance() {
+		return texture;
 	}
 	
 	public static void main(String[] args) {
