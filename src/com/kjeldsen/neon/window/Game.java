@@ -6,6 +6,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.util.Random;
 
+import com.kjeldsen.neon.framework.ObjectId;
+import com.kjeldsen.neon.objects.Player;
+
 public class Game extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = 968770233274510255L;
@@ -17,7 +20,6 @@ public class Game extends Canvas implements Runnable {
 	
 	//Object
 	Handler handler;
-	
 	Random rand = new Random();
 	
 	public void init() {
@@ -25,6 +27,9 @@ public class Game extends Canvas implements Runnable {
 		HEIGHT = getHeight();
 		
 		handler = new Handler();
+		
+		handler.addObject(new Player(100, 100, ObjectId.PLAYER));
+		
 		handler.createLevel();
 	}
 	
