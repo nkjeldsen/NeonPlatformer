@@ -8,26 +8,61 @@ import java.util.LinkedList;
 
 import com.kjeldsen.neon.framework.GameObject;
 import com.kjeldsen.neon.framework.ObjectId;
+import com.kjeldsen.neon.window.Game;
+import com.kjeldsen.neon.window.Handler;
 
 public class Player extends GameObject {
 
 	private static final float MAX_SPEED = 10;
 	private float width = 32, height = 64;
 	private float gravity = 0.5f;
-	
-	public Player(float x, float y, ObjectId id) {
+	private Handler handler;
+		
+	public Player(float x, float y, Handler handler, ObjectId id) {
 		super(x, y, id);
+		this.handler = handler;		
 	}
 
 	@Override
 	public void tick(LinkedList<GameObject> objects) {
 		x += velX;
-//		y += velY;
+		y += velY;
 		
 		if(falling || jumping) {
 			velY += gravity;
 			if( velY > MAX_SPEED ) {
 				velY = MAX_SPEED;
+			}
+		}
+		
+		collision(objects);
+	}
+	
+	private void collision(LinkedList<GameObject> objects) {
+		for(GameObject currentObject: handler.objects) {
+			if(currentObject.getId() == ObjectId.BLOCK) {
+				if(getBoundsTop().intersects(currentObject.getBounds())) {
+					y = currentObject.getY() + (float) currentObject.getBounds().getHeight();
+					velY = 0;
+				}
+				
+				if(getBounds().intersects(currentObject.getBounds())) {
+					y = currentObject.getY() - height;
+					velY = 0;
+					falling = false;
+					jumping = false;
+				}
+				else {
+					falling = true;
+				}
+				
+				if(getBoundsRight().intersects(currentObject.getBounds())) {
+					x = currentObject.getX() - width;					
+				}
+
+				if(getBoundsLeft().intersects(currentObject.getBounds())) {
+					x = currentObject.getX() + (float) currentObject.getBounds().getWidth();
+				}
 			}
 		}
 	}
@@ -36,13 +71,15 @@ public class Player extends GameObject {
 	public void render(Graphics g) {
 		g.setColor(Color.blue);
 		g.fillRect((int) x, (int) y, (int) width, (int) height);
-		
-		Graphics2D g2d = (Graphics2D) g;
-		g.setColor(Color.red);
-		g2d.draw(getBounds());
-		g2d.draw(getBoundsRight());
-		g2d.draw(getBoundsLeft());
-		g2d.draw(getBoundsTop());
+
+		if( Game.DEBUG ) {
+			Graphics2D g2d = (Graphics2D) g;
+			g.setColor(Color.red);
+			g2d.draw(getBounds());
+			g2d.draw(getBoundsRight());
+			g2d.draw(getBoundsLeft());
+			g2d.draw(getBoundsTop());
+		}
 	}
 
 	@Override
@@ -61,5 +98,4 @@ public class Player extends GameObject {
 	public Rectangle getBoundsLeft() {
 		return new Rectangle((int) x, (int) y+5, (int) 5, (int) height-10); 
 	}
-	
 }
